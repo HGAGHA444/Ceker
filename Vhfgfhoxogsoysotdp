@@ -76,6 +76,54 @@ function handleGGCommand(input)
   return true
 end
 
+
+function fxbuttonmode()
+  gg.toast("SX Button aktif\nScript berjalan di latar belakang.")
+  gg.showUiButton() -- Menampilkan tombol mengambang SX
+
+  while true do
+    if gg.isClickedUiButton() then
+      gg.setVisible(true)
+      gg.setVisible(false)
+
+      local choice = gg.choice({
+        "🏠 Menu Utama",
+        "📜 Builder Script",
+        "📦 Offset Tester",
+        "🔐 Enkripsi Script",
+        "📋 Daftar CMD",
+        "🎯 Save Value",
+        "📍 Pointer Scan 1",
+        "📍 Pointer Scan 2",
+        "❌ Keluar Dari Script"
+      }, nil, "⚙️ VellBotz FX Mode\n(Pilih fitur dari SX)")
+
+      if choice == 1 then
+        startVellbotz()
+      elseif choice == 2 then
+        buildScript()
+      elseif choice == 3 then
+        run_offset_tester()
+      elseif choice == 4 then
+        encryptsc()
+      elseif choice == 5 then
+        listcmdc()
+      elseif choice == 6 then
+        Savevalue1()
+      elseif choice == 7 then
+        scanepointer1()
+      elseif choice == 8 then
+        scanepointer2()
+      elseif choice == 9 then
+        gg.toast("Keluar dari mode SX")
+        gg.setVisible(true)
+        os.exit()
+      end
+    end
+    gg.sleep(100)
+  end
+end
+
 function scanepointer2()
 function hex(n) return string.format("0x%X", n) end
 
@@ -5917,6 +5965,8 @@ function handleCommand(input)
     return scanepointer1()
     elseif lc:match("^%/scanepointer2$") then
     return scanepointer2()
+    elseif lc:match("^%/button.sh$") then
+  return fxbuttonmode()
     end
 end
 
@@ -6012,7 +6062,8 @@ end
 
 function startVellbotz()
     while true do
-        local input = gg.prompt({"🎀 Vellbotz di sini~ Mau tanya apa? (Ketik 'keluar' buat tutup~)"}, nil, {"text"})
+    gg.setVisible(false)
+        local input = gg.prompt({"🎀 Vellbotz di sini~ Mau tanya apa? (Ketik '/button.sh' buat mode Sx~)"}, nil, {"text"})
         if not input then
             gg.toast("😶‍🌫️ Vellbotz sembunyi dulu~ klik ikon GG buat lanjut yaa~")
             gg.setVisible(false)
@@ -6026,6 +6077,3 @@ end
 
 -- Mulai sesi
 startVellbotz()
-
-
--- ⛏️ <{OFFSET TESTER}>Injected Feature
