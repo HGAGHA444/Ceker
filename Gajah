@@ -1,0 +1,62 @@
+-- Vellix UID Auth System | Firebase Connected
+if not gg then os.exit() end
+gg.setVisible(false)
+
+local uidFile = "/sdcard/Android/.gg_vellix_device_uid.txt"
+
+-- Ambil UID dari file
+local function getUID()
+  local f = io.open(uidFile, "r")
+  if f then
+    local uid = f:read("*l")
+    f:close()
+    return uid
+  end
+end
+
+local uid = getUID()
+if not uid then
+  gg.alert("❌ UID tidak ditemukan di perangkat.\nHarap generate UID dulu.")
+  os.exit()
+end
+
+gg.toast("📡 Mengecek UID...\n" .. uid)
+
+-- URL Firebase (revisi path MASTER_LOG)
+local firebaseURL = "https://iruna-afd77-default-rtdb.asia-southeast1.firebasedatabase.app/Master_Log/"..uid..".json"
+local res = gg.makeRequest(firebaseURL)
+
+if not res or res.code ~= 200 or not res.content or res.content == "null" then
+  gg.alert("❌ UID tidak ditemukan di Server.\nHubungi admin untuk registrasi.")
+  os.exit()
+end
+
+local json = res.content
+local banned = json:match('"banned"%s*:%s*"([^"]+)"')
+local expired = json:match('"expired"%s*:%s*"([^"]+)"')
+local script_url = json:match('"script_url"%s*:%s*"([^"]+)"')
+
+-- Cek status
+if banned == "true" then
+  gg.alert("🚫 UID ini dibanned.\nHubungi admin.")
+  os.exit()
+end
+
+-- Cek tanggal expired
+local today = os.date("%Y-%m-%d")
+if expired and expired < today then
+  gg.alert("⛔ Akses kedaluwarsa sejak: " .. expired)
+  os.exit()
+end
+
+gg.toast("✅ Terverifikasi. Memuat script...")
+
+-- Ambil dan jalankan script
+local run = gg.makeRequest(script_url or "")
+if not run or run.code ~= 200 or not run.content then
+  gg.alert("❌ Gagal memuat script dari URL.\nCek koneksi atau script_url.")
+  os.exit()
+end
+
+gg.toast("✨ Script berhasil dimuat~")
+load(run.content)()
