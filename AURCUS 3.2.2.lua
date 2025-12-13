@@ -2975,7 +2975,7 @@ if not spendCoin() then return end
 gg.clearResults()
 gg.setVisible(false)
 gg.setRanges(gg.REGION_JAVA_HEAP)
-if searchInDalvikMainSpace("119;0;16777216:13", gg.TYPE_DWORD) then
+if searchInDalvikMainSpace("119;1;16777216:13", gg.TYPE_DWORD) then
 gg.processResume()
 gg.refineNumber("119", gg.TYPE_DWORD)
 end
