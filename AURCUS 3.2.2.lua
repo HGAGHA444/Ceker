@@ -2812,8 +2812,8 @@ function statusedit()
         
         -- Langkah 4: Mode pengeditan dengan prompt tunggal
         local editOptions = gg.prompt({
-            "Damage (number):",
-            "Move Speed (slide):",
+            "Damage:",
+            "Move Speed :",
             "☐ Anti Mana",
             "☐ Anti Cooldown"
         }, {
@@ -2846,7 +2846,7 @@ function statusedit()
         
         -- Move Speed (slide)
         table.insert(edit, {
-            address = r[1].address + 300,
+            address = r[1].address + 0,
             flags = gg.TYPE_DWORD,
             value = editOptions[2],
             freeze = true
@@ -2877,21 +2877,6 @@ function statusedit()
         gg.addListItems(edit)
         
         -- Edit tambahan untuk move speed (opsional - sesuai script awal)
-        local ox = gg.prompt({
-            "Edit Move Speed tambahan [5;10000]:"
-        }, {"10000"}, {"number"})
-        
-        if ox ~= nil and ox[1] ~= nil then
-            gg.editAll(ox[1], 4)
-            local t = gg.getResults(1)
-            for i, v in ipairs(t) do
-                if v.flags == gg.TYPE_DWORD then
-                    v.value = ox[1]
-                    v.freeze = true
-                end
-            end
-            gg.addListItems(t)
-        end
         
         gg.alert("Pengeditan berhasil diapply!")
         return PLAYER()
