@@ -1064,7 +1064,7 @@ function PLAYER()
         "│⦿ 〔 BASIC WEAPON", 
         "│⦿ 〔 PLOT ARMOR",
         "│⦿ 〔 RANDOM CHARACTER",
-        "│⦿ 〔 HIDE MENU 〕",
+        "│⦿ 〔 REFRESH SKILL〕",
         "◣─❈ 「 BACK 」─✦"
     }, nil, createMenuTitle("PLAYER"))
     
@@ -1075,7 +1075,7 @@ function PLAYER()
     elseif PMENU == 3 then Go(basicweapon)
     elseif PMENU == 4 then unlishield()
     elseif PMENU == 5 then rc()
-    elseif PMENU == 6 then HideMenu()
+    elseif PMENU == 6 then rskill()
     elseif PMENU == 7 then Back()
     end
 end
@@ -3908,6 +3908,19 @@ gg.alert("Feature Coming Soon!")
 end
 
 
+function rskill()
+gg.clearResults()
+gg.setVisible(false)
+gg.setRanges(gg.REGION_JAVA_HEAP)
+if searchInDalvikMainSpace("3;81;20:9", gg.TYPE_DWORD) then
+gg.processResume()
+gg.refineNumber("3", gg.TYPE_DWORD)
+revert = gg.getResults(100, nil, nil, nil, nil, nil, nil, nil, nil)
+gg.editAll("25", gg.TYPE_DWORD)
+end
+gg.clearResults()
+gg.processResume()
+end
 
 
 
