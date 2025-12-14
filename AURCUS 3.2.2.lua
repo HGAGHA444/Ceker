@@ -2675,10 +2675,10 @@ gg.setVisible(false)
         gg.setVisible(false)
         gg.clearResults()
         gg.setRanges(gg.REGION_JAVA_HEAP)
-        if searchInDalvikMainSpace("65536;210;1:17", gg.TYPE_DWORD, false, gg.SIGN_EQUAL) then
+      gg.searchNumber("65536;210;1:17", gg.TYPE_DWORD, false, gg.SIGN_EQUAL)
         gg.sleep(500)
         gg.refineNumber("210", gg.TYPE_DWORD)
-        end
+       
         local results = gg.getResults(1)
         if #results == 0 then 
             gg.alert("❌ Tidak ditemukan nilai buff") 
