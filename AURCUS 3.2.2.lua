@@ -2746,7 +2746,6 @@ gg.setVisible(false)
                 table.insert(baru, v)
             end
         end
-        gg.clearList()
         gg.addListItems(baru)
     end
     
