@@ -3903,14 +3903,13 @@ function Ssword()
         false
     }, {"number", "checkbox"})
 
+    -- BATAL / TAP LUAR
     if not newValue then
         return
     end
 
+    -- BACK = HENTIKAN FUNCTION SAJA
     if newValue[2] == true then
-        gg.run(function()
-            Bskill()
-        end)
         return
     end
 
