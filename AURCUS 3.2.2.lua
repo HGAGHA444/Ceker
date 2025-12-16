@@ -2579,88 +2579,156 @@ function ss3()
 end
 
 function Abuff()
--- VELLTOOLS Game Guardian Script (Fixed Trigger & Pause)
-
 gg.setVisible(false)
 
--- SEARCH TRIGGER
-gg.clearResults()
-gg.searchNumber("65536;212;1:17", gg.TYPE_DWORD)
-gg.refineNumber("212", gg.TYPE_DWORD)
-local r = gg.getResults(2000)
-if #r == 0 then os.exit() end
+local farmingEffectCodes = {178, 178, 134, 134, 200, 200, 432, 432, 110, 110, 111, 111, 117, 117, 253, 253, 254, 254, 369, 369, 165, 165, 442, 442, 52, 52, 51, 51}
+local xpEffectCodes = {133, 133, 157, 157, 200, 200, 222, 222, 432, 432, 192, 192, 199, 199, 197, 197, 164, 164, 216, 216, 217, 217, 555, 555, 553, 553, 545, 545, 49, 49, 50, 50, 57, 57, 202, 202} -- <-- Nanti kamu isi sendiri
 
--- VALIDATE OFFSET +4 == 1
-local base = {}
-for i = 1, #r do
-    local chk = gg.getValues({{
-        address = r[i].address + 4,
-        flags = gg.TYPE_DWORD
-    }})[1].value
-    if chk == 1 then
-        base[#base + 1] = r[i]
+-- Fungsi: Simpan hasil pencarian trigger
+function cariTrigger()
+  gg.setVisible(false)
+  gg.clearResults()
+  gg.setRanges(gg.REGION_JAVA_HEAP)
+  gg.searchNumber("1D;-1D;1008981770D;1.0F;65793D:61", gg.TYPE_DWORD, false, gg.SIGN_EQUAL)
+  gg.refineNumber("1", gg.TYPE_DWORD)
+  gg.refineAddress("0", -1, gg.TYPE_DWORD)
+  local results = gg.getResults(1000)
+  if #results == 0 then gg.alert("❌ Tidak ada hasil Trigger.") os.exit() end
+  local offsetList = {}
+  for _, v in ipairs(results) do
+    table.insert(offsetList, {
+      address = v.address + 0x60,
+      flags = gg.TYPE_DWORD,
+      value = 0,
+      freeze = false,
+      name = "trigger"
+    })
+  end
+  gg.addListItems(offsetList)
+end
+
+-- Fungsi: Simpan hasil pencarian buff
+function cariBuff()
+  gg.setVisible(false)
+  gg.clearResults()
+  gg.setRanges(gg.REGION_JAVA_HEAP)
+  gg.searchNumber("65536;212;1:17", gg.TYPE_DWORD, false, gg.SIGN_EQUAL)
+  gg.sleep(500)
+  gg.refineNumber("212", gg.TYPE_DWORD)
+  local results = gg.getResults(1)
+  if #results == 0 then gg.alert("❌ Tidak ditemukan nilai 212.") os.exit() end
+  results[1].name = "buff"
+  results[1].freeze = false
+  gg.addListItems(results)
+end
+
+-- Fungsi: Jalankan efek buff otomatis
+function applyBuff(effectCodes)
+  -- Ambil buff dari save list
+  local buffList = gg.getListItems()
+  local buffAddr = nil
+  for _, v in ipairs(buffList) do
+    if v.name == "buff" then
+      buffAddr = v.address
+      break
     end
+  end
+  if not buffAddr then gg.alert("❌ Buff tidak ditemukan.") os.exit() end
+
+  -- Offset +4 freeze ke 1
+  local offsetPlus4 = buffAddr + 4
+  gg.setValues({{address = offsetPlus4, flags = gg.TYPE_DWORD, value = 1}})
+  gg.addListItems({{
+    address = offsetPlus4,
+    flags = gg.TYPE_DWORD,
+    value = 1,
+    freeze = true,
+    name = "freeze_1"
+  }})
+
+  -- Freeze nilai utama jadi 61
+  gg.setValues({{address = buffAddr, flags = gg.TYPE_DWORD, value = 61}})
+  gg.addListItems({{
+    address = buffAddr,
+    flags = gg.TYPE_DWORD,
+    value = 61,
+    freeze = true,
+    name = "buff_main"
+  }})
+
+  gg.sleep(1000)
+
+  -- Loop edit semua efek buff
+  for _, val in ipairs(effectCodes) do
+    gg.editAll(tostring(val), gg.TYPE_DWORD)
+    local hasil = gg.getResults(100)
+    for _, v in ipairs(hasil) do
+      v.value = val
+      v.freeze = true
+    end
+    gg.addListItems(hasil)
+    gg.toast("✔ Efek " .. val .. " diterapkan.")
+    gg.sleep(1000)
+  end
 end
-if #base == 0 then os.exit() end
 
--- FREEZE OFFSET +4 = 1
-local freeze = {}
-for i = 1, #base do
-    freeze[#freeze + 1] = {
-        address = base[i].address + 4,
-        flags = gg.TYPE_DWORD,
-        value = 1,
-        freeze = true
-    }
+-- Fungsi: Bekukan trigger
+function aktifkanTrigger()
+  local triggerList = gg.getListItems()
+  for _, v in ipairs(triggerList) do
+    if v.name == "trigger" then
+      v.value = 9876258
+      v.freeze = true
+    end
+  end
+  gg.setValues(triggerList)
+  gg.addListItems(triggerList)
 end
-gg.addListItems(freeze)
 
--- EDIT 212 -> 61
-local edit212 = {}
-for i = 1, #base do
-    edit212[#edit212 + 1] = {
-        address = base[i].address,
-        flags = gg.TYPE_DWORD,
-        value = 61
-    }
+-- Fungsi: Hapus semua freeze kecuali nilai 1
+function bersihkanFreeze()
+  local list = gg.getListItems()
+  local baru = {}
+  for _, v in ipairs(list) do
+    if v.value == 1 and v.flags == gg.TYPE_DWORD then
+      table.insert(baru, v) -- Pertahankan
+    end
+  end
+  gg.clearList()
+  gg.addListItems(baru)
 end
-gg.setValues(edit212)
 
--- SELECT BUFF
-local menu = gg.choice({"Buff Farm", "Buff EXP"}, nil, "PILIH BUFF")
-if not menu then os.exit() end
+-- ========== JALANKAN OTOMATIS ==========
 
-local buffFarm = {178,134,200,432,110,111,117,253,254,369,165,442,52,51}
-local buffExp  = {133,157,200,222,432,192,199,197,164,216,217,555,553,545,49,50,57,202}
-local buff = (menu == 1) and buffFarm or buffExp
+-- Langkah awal
+cariTrigger()
+cariBuff()
 
--- PAUSE: WAIT GG ICON CLICK
-gg.toast("AKTIFKAN SKILL LALU KLIK ICON GG")
+-- Menu pilihan
+local pilih = gg.choice({
+  "📦 Farming Only",
+  "📘 XP Only",
+  "❌ Keluar"
+}, nil, "Auto Buff Menu")
+if pilih == 1 then
+  aktifkanTrigger()
+  applyBuff(farmingEffectCodes)
+  bersihkanFreeze()
+elseif pilih == 2 then
+  aktifkanTrigger()
+  applyBuff(xpEffectCodes)
+  bersihkanFreeze()
+else
+  gg.toast("🚪 Keluar dari script.")
+  os.exit()
+end
+
 while true do
-    if gg.isVisible() then
-        gg.setVisible(false)
-        break
-    end
-    gg.sleep(300)
+  if gg.isVisible(true) then
+    gg.setVisible(false)
+    pilih()
+  end
 end
-
--- APPLY BUFF AFTER TRIGGER
-gg.clearResults()
-gg.searchNumber("61", gg.TYPE_DWORD)
-local targets = gg.getResults(#buff)
-if #targets < #buff then os.exit() end
-
-local apply = {}
-for i = 1, #buff do
-    apply[#apply + 1] = {
-        address = targets[i].address,
-        flags = gg.TYPE_DWORD,
-        value = buff[i]
-    }
-end
-gg.setValues(apply)
-
-gg.toast("BUFF BERHASIL")
 end
 
 function statusedit()
