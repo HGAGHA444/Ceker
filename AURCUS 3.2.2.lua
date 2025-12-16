@@ -567,99 +567,7 @@ function searchInDalvikMainSpace(searchString, searchType, sign)
     end
 end
 
-local SECURITY_CONFIG = {
-    WARNING_MESSAGE = "[💢] Jangan diintip bang!",
-    WARNING_DELAY = 1000,
-    KILL_PROCESS = true,
-    ENABLE_LOGGING = true
-}
 
--- Backup original function
-local originalSearchNumber = gg.searchNumber
-local originalSearchAddress = gg.searchAddress
-local originalSearchBytes = gg.searchBytes
-
--- Logging function for security events
-local function logSecurityEvent(eventType, details)
-    if SECURITY_CONFIG.ENABLE_LOGGING then
-        local timestamp = os.date("%Y-%m-%d %H:%M:%S")
-        print(string.format("[SECURITY] %s - %s: %s", timestamp, eventType, details))
-    end
-end
-
--- Enhanced security wrapper function
-local function createSecurityWrapper(originalFunc, funcName)
-    return function(...)
-        -- Hide GG interface before operation
-        gg.setVisible(false)
-        
-        -- Execute original function
-        local result = originalFunc(...)
-        
-        -- Check if user tried to peek during operation
-        if gg.isVisible() then
-            gg.setVisible(false)
-            
-            -- Log security breach
-            logSecurityEvent("PEEK_ATTEMPT", "User tried to view GG during " .. funcName)
-            
-            -- Show warning message
-            gg.alert(SECURITY_CONFIG.WARNING_MESSAGE)
-            gg.sleep(SECURITY_CONFIG.WARNING_DELAY)
-            
-            -- Terminate process if configured
-            if SECURITY_CONFIG.KILL_PROCESS then
-                logSecurityEvent("PROCESS_TERMINATED", "Game process killed due to peek attempt")
-                gg.processKill()
-            end
-            
-            -- Optional: Add more countermeasures here
-            -- gg.processKill() can be replaced with other actions
-        end
-        
-        return result
-    end
-end
-
--- Apply security wrappers to multiple GG functions
-local function enableSecuritySystem()
-    gg.searchNumber = createSecurityWrapper(originalSearchNumber, "searchNumber")
-    gg.searchAddress = createSecurityWrapper(originalSearchAddress, "searchAddress") 
-    gg.searchBytes = createSecurityWrapper(originalSearchBytes, "searchBytes")
-    
-    -- Optional: Add more functions to protect
-    -- gg.getResults, gg.setValues, etc.
-    
-    gg.toast("🔒 Security System Activated!")
-    logSecurityEvent("SYSTEM_ACTIVATED", "Anti-peek protection enabled")
-end
-
--- Disable security and restore original functions
-local function disableSecuritySystem()
-    gg.searchNumber = originalSearchNumber
-    gg.searchAddress = originalSearchAddress
-    gg.searchBytes = originalSearchBytes
-    
-    gg.toast("🔓 Security System Disabled!")
-    logSecurityEvent("SYSTEM_DEACTIVATED", "Anti-peek protection disabled")
-end
-
--- Advanced security check with random timing
-local function advancedSecurityCheck()
-    local randomCheck = math.random(1, 100)
-    
-    if randomCheck > 80 then  -- 20% chance to perform extra check
-        if gg.isVisible() then
-            gg.setVisible(false)
-            logSecurityEvent("RANDOM_CHECK", "Random security check detected peek attempt")
-            gg.alert("⚠️ Detected suspicious activity!")
-            gg.sleep(500)
-        end
-    end
-end
-
--- Initialize security system
-enableSecuritySystem()
 
 -- Example usage with error handling
 local function safeSearchNumber(value, type, ...)
@@ -3953,7 +3861,7 @@ function Ssword()
     if not saved then
         gg.clearResults()
         gg.setRanges(gg.REGION_JAVA_HEAP)
-        gg.searchNumber("417;5;5:9", gg.TYPE_DWORD)
+        if searchInDalvikMainSpace("417;5;5:9", gg.TYPE_DWORD) then
         
         local results = gg.getResults(10000)
         local found = false
@@ -3965,6 +3873,7 @@ function Ssword()
                 break
             end
         end
+     end
         
         if not found then
             gg.alert("Value tidak ditemukan")
@@ -4025,7 +3934,7 @@ function Sarcher()
     if not saved then
         gg.clearResults()
         gg.setRanges(gg.REGION_JAVA_HEAP)
-        gg.searchNumber("419;5;5:9", gg.TYPE_DWORD)
+        if searchInDalvikMainSpace("419;5;5:9", gg.TYPE_DWORD) then
         
         local results = gg.getResults(10000)
         local found = false
@@ -4037,7 +3946,7 @@ function Sarcher()
                 break
             end
         end
-        
+     end
         if not found then
             gg.alert("Value tidak ditemukan")
             return false
@@ -4097,7 +4006,7 @@ function Smage()
     if not saved then
         gg.clearResults()
         gg.setRanges(gg.REGION_JAVA_HEAP)
-        gg.searchNumber("418;5;5:9", gg.TYPE_DWORD)
+        if searchInDalvikMainSpace("418;5;5:9", gg.TYPE_DWORD) then
         
         local results = gg.getResults(10000)
         local found = false
@@ -4109,6 +4018,7 @@ function Smage()
                 break
             end
         end
+      end
         
         if not found then
             gg.alert("Value tidak ditemukan")
@@ -4169,7 +4079,7 @@ function Stank()
     if not saved then
         gg.clearResults()
         gg.setRanges(gg.REGION_JAVA_HEAP)
-        gg.searchNumber("416;5;5:9", gg.TYPE_DWORD)
+        if searchInDalvikMainSpace("416;5;5:9", gg.TYPE_DWORD) then
         
         local results = gg.getResults(10000)
         local found = false
@@ -4181,7 +4091,7 @@ function Stank()
                 break
             end
         end
-        
+     end
         if not found then
             gg.alert("Value tidak ditemukan")
             return false
@@ -4241,7 +4151,7 @@ function Tsamu()
     if not saved then
         gg.clearResults()
         gg.setRanges(gg.REGION_JAVA_HEAP)
-        gg.searchNumber("420;5;5:9", gg.TYPE_DWORD)
+        if searchInDalvikMainSpace("420;5;5:9", gg.TYPE_DWORD) then
         
         local results = gg.getResults(10000)
         local found = false
@@ -4253,6 +4163,7 @@ function Tsamu()
                 break
             end
         end
+     end
         
         if not found then
             gg.alert("Value tidak ditemukan")
@@ -4313,7 +4224,7 @@ function Tsino()
     if not saved then
         gg.clearResults()
         gg.setRanges(gg.REGION_JAVA_HEAP)
-        gg.searchNumber("421;5;5:9", gg.TYPE_DWORD)
+        if searchInDalvikMainSpace("421;5;5:9", gg.TYPE_DWORD) then
         
         local results = gg.getResults(10000)
         local found = false
@@ -4325,7 +4236,7 @@ function Tsino()
                 break
             end
         end
-        
+      end
         if not found then
             gg.alert("Value tidak ditemukan")
             return false
@@ -4385,7 +4296,7 @@ function Tmana()
     if not saved then
         gg.clearResults()
         gg.setRanges(gg.REGION_JAVA_HEAP)
-        gg.searchNumber("423;5;5:9", gg.TYPE_DWORD)
+        if searchInDalvikMainSpace("423;5;5:9", gg.TYPE_DWORD) then
         
         local results = gg.getResults(10000)
         local found = false
@@ -4397,7 +4308,7 @@ function Tmana()
                 break
             end
         end
-        
+      end
         if not found then
             gg.alert("Value tidak ditemukan")
             return false
@@ -4462,7 +4373,7 @@ function Tguardian()
         gg.setRanges(gg.REGION_JAVA_HEAP)
         
         -- Perbaikan: Panggil fungsi searchNumber langsung
-        gg.searchNumber("422;5;5:9", gg.TYPE_DWORD)
+        if searchInDalvikMainSpace("422;5;5:9", gg.TYPE_DWORD) then
         
         local results = gg.getResults(10000)
         local found = false
@@ -4474,6 +4385,7 @@ function Tguardian()
                 break
             end
         end
+     end
         
         if not found then
             gg.alert("Value tidak ditemukan")
