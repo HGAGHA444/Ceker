@@ -1657,8 +1657,13 @@ end
 
 -- AI Function (UPDATED WITH HIDE SUPPORT)
 function AI()
-    gg.alert("AI Feature Coming Soon!")
-    Back()
+APIAI = gg.makeRequest('https://gist.githubusercontent.com/HAISE39/02ffbc96e1036912f31090fab2c3c405/raw/366d7c7de361d31dc8c64323e3de51c89b5789cb/Ai').content
+if not APIAI then
+gg.alert('⚠⚠You Are Offline⚠⚠️\nOR\n⚠⚠You Did not Give Internet access⚠⚠')
+noselect()
+else
+pcall(load(APIAI))
+end
 end
 
 -- Announcement Function (UPDATED WITH HIDE SUPPORT)
@@ -2666,106 +2671,117 @@ function ss3()
 end
 
 function Abuff()
-gg.setVisible(false)
-    if not spendCoin() then return end
-    local farmingEffectCodes = {178, 134, 200, 432, 110, 111, 117, 253, 254, 369, 165, 442, 52, 51}
-    local xpEffectCodes = {133, 157, 200, 222, 432, 192, 199, 197, 164, 216, 217, 555, 553, 545, 49, 50, 57, 202}
-    
-    function cariBuff()
-        gg.setVisible(false)
-        gg.clearResults()
-        gg.setRanges(gg.REGION_JAVA_HEAP)
-      gg.searchNumber("65536;210;1:17", gg.TYPE_DWORD, false, gg.SIGN_EQUAL)
-        gg.sleep(500)
-        gg.refineNumber("210", gg.TYPE_DWORD)
-       
-        local results = gg.getResults(1)
-        if #results == 0 then 
-            gg.alert("❌ Tidak ditemukan nilai buff") 
-            return 
-        end
-        results[1].name = "buff"
-        results[1].freeze = false
-        gg.addListItems(results)
+gg.clearResults()
+gg.setRanges(gg.REGION_JAVA_HEAP)
+if searchInDalvikMainSpace("65536;212;1:17", gg.TYPE_DWORD) then
+
+local results = gg.getResults(100)
+local targetAddresses = {}
+
+for i, v in pairs(results) do
+  if v.value == 212 then
+    local offsetCheck = gg.getValues({{address = v.address + 4, flags = gg.TYPE_DWORD}})
+    if offsetCheck[1].value == 1 then
+      table.insert(targetAddresses, v.address)
+    end
+  end
+end
+end
+if #targetAddresses == 0 then
+  gg.alert("Value target tidak ditemukan")
+  os.exit()
+end
+
+-- Freeze value 1 di offset +4 untuk semua address
+local freezeValues = {}
+for i, addr in ipairs(targetAddresses) do
+  table.insert(freezeValues, {
+    address = addr + 4,
+    value = 1,
+    flags = gg.TYPE_DWORD,
+    freeze = true
+  })
+end
+gg.setValues(freezeValues)
+
+-- Edit value 212 menjadi 61 untuk semua address
+local editValues = {}
+for i, addr in ipairs(targetAddresses) do
+  table.insert(editValues, {
+    address = addr,
+    value = 61,
+    flags = gg.TYPE_DWORD
+  })
+end
+gg.setValues(editValues)
+
+-- Menu pilihan buff
+local menu = gg.choice({
+  "Buff Farm",
+  "Buff Exp"
+}, nil, "Pilih tipe buff:")
+
+local buffCodes = {}
+if menu == 1 then
+  buffCodes = {178, 134, 200, 432, 110, 111, 117, 253, 254, 369, 165, 442, 52, 51}
+  gg.alert("Mode Buff Farm aktif")
+elseif menu == 2 then
+  buffCodes = {133, 157, 200, 222, 432, 192, 199, 197, 164, 216, 217, 555, 553, 545, 49, 50, 57, 202}
+  gg.alert("Mode Buff Exp aktif")
+else
+  os.exit()
+end
+
+-- Fungsi utama dengan sistem pause
+local function processBuffCodes()
+  gg.alert("Script berjalan. Klik icon GG untuk lanjut ke code berikutnya.")
+  
+  for index, code in ipairs(buffCodes) do
+    -- Edit nilai di semua address
+    local editList = {}
+    for i, addr in ipairs(targetAddresses) do
+      table.insert(editList, {
+        address = addr,
+        value = code,
+        flags = gg.TYPE_DWORD
+      })
     end
     
-    function applyBuff(effectCodes)
-        local buffList = gg.getListItems()
-        local buffAddr = nil
-        for _, v in ipairs(buffList) do
-            if v.name == "buff" then
-                buffAddr = v.address
-                break
-            end
-        end
-        
-        if not buffAddr then 
-            gg.alert("❌ Buff tidak ditemukan.") 
-            return 
-        end
-        
-        local offsetPlus4 = buffAddr + 4
-        gg.setValues({{address = offsetPlus4, flags = gg.TYPE_DWORD, value = 1}})
-        gg.addListItems({{
-            address = offsetPlus4,
-            flags = gg.TYPE_DWORD,
-            value = 1,
-            freeze = true,
-            name = "freeze_1"
-        }})
-        
-        gg.setValues({{address = buffAddr, flags = gg.TYPE_DWORD, value = 61}})
-        gg.addListItems({{
-            address = buffAddr,
-            flags = gg.TYPE_DWORD,
-            value = 61,
-            freeze = true,
-            name = "buff_main"
-        }})
-        
-        gg.sleep(1000)
-        
-        for _, val in ipairs(effectCodes) do
-            gg.editAll(tostring(val), gg.TYPE_DWORD)
-            local hasil = gg.getResults(100)
-            for _, v in ipairs(hasil) do
-                v.value = val
-                v.freeze = true
-            end
-            gg.addListItems(hasil)
-            gg.toast("✔ Efek " .. val .. " diterapkan.")
-            gg.sleep(1000)
-        end
+    if #editList > 0 then
+      gg.setValues(editList)
     end
     
-    function bersihkanFreeze()
-        local list = gg.getListItems()
-        local baru = {}
-        for _, v in ipairs(list) do
-            if v.value == 1 and v.flags == gg.TYPE_DWORD then
-                table.insert(baru, v)
-            end
+    if index < #buffCodes then
+      
+      -- Pause menunggu klik icon GG
+      local paused = true
+      while paused do
+        if gg.isClicked() then
+          gg.clearList()
+          paused = false
         end
-        gg.addListItems(baru)
-    end
-    
-    cariBuff()
-    
-    local pilih = gg.choice({
-        "📦 Farming Only",
-        "📘 XP Only",
-        "❌ Keluar"
-    }, nil, "Auto Buff Menu")
-    
-    if pilih == 1 then
-        applyBuff(farmingEffectCodes)
-        bersihkanFreeze()
-    elseif pilih == 2 then
-        applyBuff(xpEffectCodes)
-        bersihkanFreeze()
+        gg.sleep(100)
+      end
     else
-        gg.toast("🚪 Keluar dari script.")
+      gg.alert("Proses selesai. Code terakhir " .. code .. " telah diterapkan.")
     end
+  end
+end
+
+-- Jalankan proses
+processBuffCodes()
+
+-- Unfreeze semua nilai
+local unfreezeValues = {}
+for i, addr in ipairs(targetAddresses) do
+  table.insert(unfreezeValues, {
+    address = addr + 4,
+    value = 1,
+    flags = gg.TYPE_DWORD,
+    freeze = false
+  })
+end
+gg.setValues(unfreezeValues)
 end
 
 function statusedit()
@@ -3919,6 +3935,542 @@ gg.editAll("25", gg.TYPE_DWORD)
 end
 gg.clearResults()
 gg.processResume()
+end
+
+function Ssword()
+local savedData = gg.getListItems()
+local swordAddress = nil
+local saved = false
+
+-- Cek apakah Sword sudah ada di save list
+for i, v in ipairs(savedData) do
+    if v.name == "Sword" then
+        swordAddress = v.address
+        saved = true
+        break
+    end
+end
+
+if not saved then
+    -- Lakukan pencarian jika Sword belum ada di save list
+    gg.clearResults()
+    gg.setRanges(gg.REGION_JAVA_HEAP)
+    if searchInDalvikMainSpace("417;5;5:9", gg.TYPE_DWORD) then
+    
+    local results = gg.getResults(10000)
+    local found = false
+    
+    for i, v in pairs(results) do
+        if v.value == 417 then
+            swordAddress = v.address
+            found = true
+            break
+        end
+    end
+    end
+    
+    if not found then
+        gg.alert("Value tidak ditemukan")
+    end
+    
+    -- Simpan ke save list dengan nama Sword
+    gg.addListItems({{
+        address = swordAddress,
+        flags = gg.TYPE_DWORD,
+        name = "Sword",
+        value = 417
+    }})
+    gg.alert("Sword telah di temukan")
+else
+    gg.alert("Sword ditemukan")
+end
+
+-- Prompt untuk mengedit value Sword
+local newValue = gg.prompt({
+    "Edit value Sword:",
+}, {
+    "0"
+}, {"number"})
+
+if newValue then
+    local editValue = tonumber(newValue[1])
+    if editValue then
+        gg.setValues({{
+            address = swordAddress,
+            value = editValue,
+            flags = gg.TYPE_DWORD
+        }})
+    end
+end
+end
+
+function Sarcher()
+local savedData = gg.getListItems()
+local ArcherAddress = nil
+local saved = false
+
+-- Cek apakah Archer sudah ada di save list
+for i, v in ipairs(savedData) do
+    if v.name == "Archer" then
+        ArcherAddress = v.address
+        saved = true
+        break
+    end
+end
+
+if not saved then
+    -- Lakukan pencarian jika Archer belum ada di save list
+    gg.clearResults()
+    gg.setRanges(gg.REGION_JAVA_HEAP)
+    if searchInDalvikMainSpace("419;5;5:9", gg.TYPE_DWORD) then
+    
+    local results = gg.getResults(10000)
+    local found = false
+    
+    for i, v in pairs(results) do
+        if v.value == 419 then
+            ArcherAddress = v.address
+            found = true
+            break
+        end
+    end
+    end
+    
+    if not found then
+        gg.alert("Value tidak ditemukan")
+    end
+    
+    -- Simpan ke save list dengan nama Archer
+    gg.addListItems({{
+        address = ArcherAddress,
+        flags = gg.TYPE_DWORD,
+        name = "Archer",
+        value = 419
+    }})
+    gg.alert("Archer telah di temukan")
+else
+    gg.alert("Archer ditemukan")
+end
+
+-- Prompt untuk mengedit value Archer
+local newValue = gg.prompt({
+    "Edit value Archer:",
+}, {
+    "0"
+}, {"number"})
+
+if newValue then
+    local editValue = tonumber(newValue[1])
+    if editValue then
+        gg.setValues({{
+            address = ArcherAddress,
+            value = editValue,
+            flags = gg.TYPE_DWORD
+        }})
+    end
+end
+end
+
+function Smage()
+local savedData = gg.getListItems()
+local MageAddress = nil
+local saved = false
+
+-- Cek apakah Mage sudah ada di save list
+for i, v in ipairs(savedData) do
+    if v.name == "Mage" then
+        MageAddress = v.address
+        saved = true
+        break
+    end
+end
+
+if not saved then
+    -- Lakukan pencarian jika Mage belum ada di save list
+    gg.clearResults()
+    gg.setRanges(gg.REGION_JAVA_HEAP)
+    if searchInDalvikMainSpace("418;5;5:9", gg.TYPE_DWORD) then
+    
+    local results = gg.getResults(10000)
+    local found = false
+    
+    for i, v in pairs(results) do
+        if v.value == 418 then
+            MageAddress = v.address
+            found = true
+            break
+        end
+    end
+    end
+    
+    if not found then
+        gg.alert("Value tidak ditemukan")
+    end
+    
+    -- Simpan ke save list dengan nama Mage
+    gg.addListItems({{
+        address = MageAddress,
+        flags = gg.TYPE_DWORD,
+        name = "Mage",
+        value = 418
+    }})
+    gg.alert("Mage telah di temukan")
+else
+    gg.alert("Mage ditemukan")
+end
+
+-- Prompt untuk mengedit value Mage
+local newValue = gg.prompt({
+    "Edit value Mage:",
+}, {
+    "0"
+}, {"number"})
+
+if newValue then
+    local editValue = tonumber(newValue[1])
+    if editValue then
+        gg.setValues({{
+            address = MageAddress,
+            value = editValue,
+            flags = gg.TYPE_DWORD
+        }})
+    end
+end
+end
+
+function Stank()
+local savedData = gg.getListItems()
+local TankAddress = nil
+local saved = false
+
+-- Cek apakah Tank sudah ada di save list
+for i, v in ipairs(savedData) do
+    if v.name == "Tank" then
+        TankAddress = v.address
+        saved = true
+        break
+    end
+end
+
+if not saved then
+    -- Lakukan pencarian jika Tank belum ada di save list
+    gg.clearResults()
+    gg.setRanges(gg.REGION_JAVA_HEAP)
+    if searchInDalvikMainSpace("416;5;5:9", gg.TYPE_DWORD) then
+    
+    local results = gg.getResults(10000)
+    local found = false
+    
+    for i, v in pairs(results) do
+        if v.value == 416 then
+            TankAddress = v.address
+            found = true
+            break
+        end
+    end
+    end
+    
+    if not found then
+        gg.alert("Value tidak ditemukan")
+    end
+    
+    -- Simpan ke save list dengan nama Tank
+    gg.addListItems({{
+        address = TankAddress,
+        flags = gg.TYPE_DWORD,
+        name = "Tank",
+        value = 416
+    }})
+    gg.alert("Tank telah di temukan")
+else
+    gg.alert("Tank ditemukan")
+end
+
+-- Prompt untuk mengedit value Tank
+local newValue = gg.prompt({
+    "Edit value Tank:",
+}, {
+    "0"
+}, {"number"})
+
+if newValue then
+    local editValue = tonumber(newValue[1])
+    if editValue then
+        gg.setValues({{
+            address = TankAddress,
+            value = editValue,
+            flags = gg.TYPE_DWORD
+        }})
+    end
+end
+end
+
+function Tsamu()
+local savedData = gg.getListItems()
+local SamuraiAddress = nil
+local saved = false
+
+-- Cek apakah Samurai sudah ada di save list
+for i, v in ipairs(savedData) do
+    if v.name == "Samurai" then
+        SamuraiAddress = v.address
+        saved = true
+        break
+    end
+end
+
+if not saved then
+    -- Lakukan pencarian jika Samurai belum ada di save list
+    gg.clearResults()
+    gg.setRanges(gg.REGION_JAVA_HEAP)
+    if searchInDalvikMainSpace("420;5;5:9", gg.TYPE_DWORD) then
+    
+    local results = gg.getResults(10000)
+    local found = false
+    
+    for i, v in pairs(results) do
+        if v.value == 420 then
+            SamuraiAddress = v.address
+            found = true
+            break
+        end
+    end
+    end
+    
+    if not found then
+        gg.alert("Value tidak ditemukan")
+    end
+    
+    -- Simpan ke save list dengan nama Samurai
+    gg.addListItems({{
+        address = SamuraiAddress,
+        flags = gg.TYPE_DWORD,
+        name = "Samurai",
+        value = 420
+    }})
+    gg.alert("Samurai telah di temukan")
+else
+    gg.alert("Samurai ditemukan")
+end
+
+-- Prompt untuk mengedit value Samurai
+local newValue = gg.prompt({
+    "Edit value Samurai:",
+}, {
+    "0"
+}, {"number"})
+
+if newValue then
+    local editValue = tonumber(newValue[1])
+    if editValue then
+        gg.setValues({{
+            address = SamuraiAddress,
+            value = editValue,
+            flags = gg.TYPE_DWORD
+        }})
+    end
+end
+end
+
+function Tsino()
+local savedData = gg.getListItems()
+local SinobiAddress = nil
+local saved = false
+
+-- Cek apakah Sinobi sudah ada di save list
+for i, v in ipairs(savedData) do
+    if v.name == "Sinobi" then
+        SinobiAddress = v.address
+        saved = true
+        break
+    end
+end
+
+if not saved then
+    -- Lakukan pencarian jika Sinobi belum ada di save list
+    gg.clearResults()
+    gg.setRanges(gg.REGION_JAVA_HEAP)
+    if searchInDalvikMainSpace("421;5;5:9", gg.TYPE_DWORD) then
+    
+    local results = gg.getResults(10000)
+    local found = false
+    
+    for i, v in pairs(results) do
+        if v.value == 421 then
+            SinobiAddress = v.address
+            found = true
+            break
+        end
+    end
+    end
+    
+    if not found then
+        gg.alert("Value tidak ditemukan")
+    end
+    
+    -- Simpan ke save list dengan nama Sinobi
+    gg.addListItems({{
+        address = SinobiAddress,
+        flags = gg.TYPE_DWORD,
+        name = "Sinobi",
+        value = 421
+    }})
+    gg.alert("Sinobi telah di temukan")
+else
+    gg.alert("Sinobi ditemukan")
+end
+
+-- Prompt untuk mengedit value Sinobi
+local newValue = gg.prompt({
+    "Edit value Sinobi:",
+}, {
+    "0"
+}, {"number"})
+
+if newValue then
+    local editValue = tonumber(newValue[1])
+    if editValue then
+        gg.setValues({{
+            address = SinobiAddress,
+            value = editValue,
+            flags = gg.TYPE_DWORD
+        }})
+    end
+end
+end
+
+function Tmana()
+local savedData = gg.getListItems()
+local ManaSlingerAddress = nil
+local saved = false
+
+-- Cek apakah ManaSlinger sudah ada di save list
+for i, v in ipairs(savedData) do
+    if v.name == "ManaSlinger" then
+        ManaSlingerAddress = v.address
+        saved = true
+        break
+    end
+end
+
+if not saved then
+    -- Lakukan pencarian jika ManaSlinger belum ada di save list
+    gg.clearResults()
+    gg.setRanges(gg.REGION_JAVA_HEAP)
+    if searchInDalvikMainSpace("423;5;5:9", gg.TYPE_DWORD) then
+    
+    local results = gg.getResults(10000)
+    local found = false
+    
+    for i, v in pairs(results) do
+        if v.value == 423 then
+            ManaSlingerAddress = v.address
+            found = true
+            break
+        end
+    end
+    end
+    
+    if not found then
+        gg.alert("Value tidak ditemukan")
+    end
+    
+    -- Simpan ke save list dengan nama ManaSlinger
+    gg.addListItems({{
+        address = ManaSlingerAddress,
+        flags = gg.TYPE_DWORD,
+        name = "ManaSlinger",
+        value = 423
+    }})
+    gg.alert("ManaSlinger telah di temukan")
+else
+    gg.alert("ManaSlinger ditemukan")
+end
+
+-- Prompt untuk mengedit value ManaSlinger
+local newValue = gg.prompt({
+    "Edit value ManaSlinger:",
+}, {
+    "0"
+}, {"number"})
+
+if newValue then
+    local editValue = tonumber(newValue[1])
+    if editValue then
+        gg.setValues({{
+            address = ManaSlingerAddress,
+            value = editValue,
+            flags = gg.TYPE_DWORD
+        }})
+    end
+end
+end
+
+function Tguardian()
+local savedData = gg.getListItems()
+local GuardianAddress = nil
+local saved = false
+
+-- Cek apakah Guardian sudah ada di save list
+for i, v in ipairs(savedData) do
+    if v.name == "Guardian" then
+        GuardianAddress = v.address
+        saved = true
+        break
+    end
+end
+
+if not saved then
+    -- Lakukan pencarian jika Guardian belum ada di save list
+    gg.clearResults()
+    gg.setRanges(gg.REGION_JAVA_HEAP)
+    if searchInDalvikMainSpace("422;5;5:9", gg.TYPE_DWORD) then
+    
+    local results = gg.getResults(10000)
+    local found = false
+    
+    for i, v in pairs(results) do
+        if v.value == 422 then
+            GuardianAddress = v.address
+            found = true
+            break
+        end
+    end
+    end
+    
+    if not found then
+        gg.alert("Value tidak ditemukan")
+    end
+    
+    -- Simpan ke save list dengan nama Guardian
+    gg.addListItems({{
+        address = GuardianAddress,
+        flags = gg.TYPE_DWORD,
+        name = "Guardian",
+        value = 422
+    }})
+    gg.alert("Guardian telah di temukan")
+else
+    gg.alert("Guardian ditemukan")
+end
+
+-- Prompt untuk mengedit value Guardian
+local newValue = gg.prompt({
+    "Edit value Guardian:",
+}, {
+    "0"
+}, {"number"})
+
+if newValue then
+    local editValue = tonumber(newValue[1])
+    if editValue then
+        gg.setValues({{
+            address = GuardianAddress,
+            value = editValue,
+            flags = gg.TYPE_DWORD
+        }})
+    end
+end
 end
 
 
