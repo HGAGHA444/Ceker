@@ -2579,86 +2579,88 @@ function ss3()
 end
 
 function Abuff()
--- VELLTOOLS Game Guardian Script (Trigger & Pause System)
+-- VELLTOOLS Game Guardian Script (Fixed Trigger & Pause)
 
 gg.setVisible(false)
 
--- STEP 1: SEARCH TRIGGER VALUE
+-- SEARCH TRIGGER
 gg.clearResults()
-if searchInDalvikMainSpace("65536;212;1:17", gg.TYPE_DWORD) then
+gg.searchNumber("65536;212;1:17", gg.TYPE_DWORD)
 gg.refineNumber("212", gg.TYPE_DWORD)
-end
-local results = gg.getResults(1000)
-if #results == 0 then os.exit() end
+local r = gg.getResults(2000)
+if #r == 0 then os.exit() end
 
--- STEP 2: VALIDATE OFFSET +4 == 1
-local target = {}
-for i, v in ipairs(results) do
-    local check = {
-        address = v.address + 4,
+-- VALIDATE OFFSET +4 == 1
+local base = {}
+for i = 1, #r do
+    local chk = gg.getValues({{
+        address = r[i].address + 4,
         flags = gg.TYPE_DWORD
-    }
-    local val = gg.getValues({check})[1].value
-    if val == 1 then
-        target[#target + 1] = v
+    }})[1].value
+    if chk == 1 then
+        base[#base + 1] = r[i]
     end
 end
-if #target == 0 then os.exit() end
+if #base == 0 then os.exit() end
 
--- STEP 3: FREEZE VALUE 1 (OFFSET +4) & EDIT 212 -> 61
-local freezeList = {}
-local editList = {}
-for i, v in ipairs(target) do
-    freezeList[#freezeList + 1] = {
-        address = v.address + 4,
+-- FREEZE OFFSET +4 = 1
+local freeze = {}
+for i = 1, #base do
+    freeze[#freeze + 1] = {
+        address = base[i].address + 4,
         flags = gg.TYPE_DWORD,
         value = 1,
         freeze = true
     }
-    editList[#editList + 1] = {
-        address = v.address,
+end
+gg.addListItems(freeze)
+
+-- EDIT 212 -> 61
+local edit212 = {}
+for i = 1, #base do
+    edit212[#edit212 + 1] = {
+        address = base[i].address,
         flags = gg.TYPE_DWORD,
         value = 61
     }
 end
-gg.setValues(editList)
-gg.addListItems(freezeList)
+gg.setValues(edit212)
 
--- STEP 4: SELECT BUFF TYPE
-local choice = gg.choice({"Buff Farm", "Buff EXP"}, nil, "SELECT BUFF")
-if not choice then os.exit() end
+-- SELECT BUFF
+local menu = gg.choice({"Buff Farm", "Buff EXP"}, nil, "PILIH BUFF")
+if not menu then os.exit() end
 
 local buffFarm = {178,134,200,432,110,111,117,253,254,369,165,442,52,51}
 local buffExp  = {133,157,200,222,432,192,199,197,164,216,217,555,553,545,49,50,57,202}
+local buff = (menu == 1) and buffFarm or buffExp
 
-local buffValues = (choice == 1) and buffFarm or buffExp
-
--- STEP 5: PAUSE SYSTEM (WAIT GG ICON CLICK)
+-- PAUSE: WAIT GG ICON CLICK
+gg.toast("AKTIFKAN SKILL LALU KLIK ICON GG")
 while true do
-    if gg.isVisible(true) then
+    if gg.isVisible() then
         gg.setVisible(false)
         break
     end
-    gg.sleep(200)
+    gg.sleep(300)
 end
 
--- STEP 6: APPLY BUFF EDIT AFTER TRIGGER
+-- APPLY BUFF AFTER TRIGGER
 gg.clearResults()
 gg.searchNumber("61", gg.TYPE_DWORD)
-local buffTargets = gg.getResults(#buffValues)
-if #buffTargets < #buffValues then os.exit() end
+local targets = gg.getResults(#buff)
+if #targets < #buff then os.exit() end
 
-local edits = {}
-for i = 1, #buffValues do
-    edits[#edits + 1] = {
-        address = buffTargets[i].address,
+local apply = {}
+for i = 1, #buff do
+    apply[#apply + 1] = {
+        address = targets[i].address,
         flags = gg.TYPE_DWORD,
-        value = buffValues[i]
+        value = buff[i]
     }
 end
-gg.setValues(edits)
+gg.setValues(apply)
 
-gg.toast("BUFF APPLIED")
+gg.toast("BUFF BERHASIL")
 end
 
 function statusedit()
