@@ -2579,117 +2579,86 @@ function ss3()
 end
 
 function Abuff()
+-- VELLTOOLS Game Guardian Script (Trigger & Pause System)
+
+gg.setVisible(false)
+
+-- STEP 1: SEARCH TRIGGER VALUE
 gg.clearResults()
-gg.setRanges(gg.REGION_JAVA_HEAP)
 if searchInDalvikMainSpace("65536;212;1:17", gg.TYPE_DWORD) then
-
-local results = gg.getResults(100)
-local targetAddresses = {}
-
-for i, v in pairs(results) do
-  if v.value == 212 then
-    local offsetCheck = gg.getValues({{address = v.address + 4, flags = gg.TYPE_DWORD}})
-    if offsetCheck[1].value == 1 then
-      table.insert(targetAddresses, v.address)
-    end
-  end
+gg.refineNumber("212", gg.TYPE_DWORD)
 end
-end
-if #targetAddresses == 0 then
-  gg.alert("Value target tidak ditemukan")
-  os.exit()
-end
+local results = gg.getResults(1000)
+if #results == 0 then os.exit() end
 
--- Freeze value 1 di offset +4 untuk semua address
-local freezeValues = {}
-for i, addr in ipairs(targetAddresses) do
-  table.insert(freezeValues, {
-    address = addr + 4,
-    value = 1,
-    flags = gg.TYPE_DWORD,
-    freeze = true
-  })
-end
-gg.setValues(freezeValues)
-
--- Edit value 212 menjadi 61 untuk semua address
-local editValues = {}
-for i, addr in ipairs(targetAddresses) do
-  table.insert(editValues, {
-    address = addr,
-    value = 61,
-    flags = gg.TYPE_DWORD
-  })
-end
-gg.setValues(editValues)
-
--- Menu pilihan buff
-local menu = gg.choice({
-  "Buff Farm",
-  "Buff Exp"
-}, nil, "Pilih tipe buff:")
-
-local buffCodes = {}
-if menu == 1 then
-  buffCodes = {178, 134, 200, 432, 110, 111, 117, 253, 254, 369, 165, 442, 52, 51}
-  gg.alert("Mode Buff Farm aktif")
-elseif menu == 2 then
-  buffCodes = {133, 157, 200, 222, 432, 192, 199, 197, 164, 216, 217, 555, 553, 545, 49, 50, 57, 202}
-  gg.alert("Mode Buff Exp aktif")
-else
-  os.exit()
-end
-
--- Fungsi utama dengan sistem pause
-local function processBuffCodes()
-  gg.alert("Script berjalan. Klik icon GG untuk lanjut ke code berikutnya.")
-  
-  for index, code in ipairs(buffCodes) do
-    -- Edit nilai di semua address
-    local editList = {}
-    for i, addr in ipairs(targetAddresses) do
-      table.insert(editList, {
-        address = addr,
-        value = code,
+-- STEP 2: VALIDATE OFFSET +4 == 1
+local target = {}
+for i, v in ipairs(results) do
+    local check = {
+        address = v.address + 4,
         flags = gg.TYPE_DWORD
-      })
+    }
+    local val = gg.getValues({check})[1].value
+    if val == 1 then
+        target[#target + 1] = v
     end
-    
-    if #editList > 0 then
-      gg.setValues(editList)
+end
+if #target == 0 then os.exit() end
+
+-- STEP 3: FREEZE VALUE 1 (OFFSET +4) & EDIT 212 -> 61
+local freezeList = {}
+local editList = {}
+for i, v in ipairs(target) do
+    freezeList[#freezeList + 1] = {
+        address = v.address + 4,
+        flags = gg.TYPE_DWORD,
+        value = 1,
+        freeze = true
+    }
+    editList[#editList + 1] = {
+        address = v.address,
+        flags = gg.TYPE_DWORD,
+        value = 61
+    }
+end
+gg.setValues(editList)
+gg.addListItems(freezeList)
+
+-- STEP 4: SELECT BUFF TYPE
+local choice = gg.choice({"Buff Farm", "Buff EXP"}, nil, "SELECT BUFF")
+if not choice then os.exit() end
+
+local buffFarm = {178,134,200,432,110,111,117,253,254,369,165,442,52,51}
+local buffExp  = {133,157,200,222,432,192,199,197,164,216,217,555,553,545,49,50,57,202}
+
+local buffValues = (choice == 1) and buffFarm or buffExp
+
+-- STEP 5: PAUSE SYSTEM (WAIT GG ICON CLICK)
+while true do
+    if gg.isVisible(true) then
+        gg.setVisible(false)
+        break
     end
-    
-    if index < #buffCodes then
-      
-      -- Pause menunggu klik icon GG
-      local paused = true
-      while paused do
-        if gg.isClicked() then
-          gg.clearList()
-          paused = false
-        end
-        gg.sleep(100)
-      end
-    else
-      gg.alert("Proses selesai. Code terakhir " .. code .. " telah diterapkan.")
-    end
-  end
+    gg.sleep(200)
 end
 
--- Jalankan proses
-processBuffCodes()
+-- STEP 6: APPLY BUFF EDIT AFTER TRIGGER
+gg.clearResults()
+gg.searchNumber("61", gg.TYPE_DWORD)
+local buffTargets = gg.getResults(#buffValues)
+if #buffTargets < #buffValues then os.exit() end
 
--- Unfreeze semua nilai
-local unfreezeValues = {}
-for i, addr in ipairs(targetAddresses) do
-  table.insert(unfreezeValues, {
-    address = addr + 4,
-    value = 1,
-    flags = gg.TYPE_DWORD,
-    freeze = false
-  })
+local edits = {}
+for i = 1, #buffValues do
+    edits[#edits + 1] = {
+        address = buffTargets[i].address,
+        flags = gg.TYPE_DWORD,
+        value = buffValues[i]
+    }
 end
-gg.setValues(unfreezeValues)
+gg.setValues(edits)
+
+gg.toast("BUFF APPLIED")
 end
 
 function statusedit()
