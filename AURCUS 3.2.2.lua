@@ -3864,7 +3864,7 @@ function Ssword()
         if searchInDalvikMainSpace("417;5;5:9", gg.TYPE_DWORD) then
             local results = gg.getResults(100)
             local found = false
-            
+
             for i, v in pairs(results) do
                 if v.value == 417 then
                     swordAddress = v.address
@@ -3872,22 +3872,24 @@ function Ssword()
                     break
                 end
             end
-            
+
             if not found then
                 gg.alert("Value tidak ditemukan")
-                return false
+                return
             end
-            
-            gg.addListItems({{
-                address = swordAddress,
-                flags = gg.TYPE_DWORD,
-                name = "Sword",
-                value = 417
-            }})
+
+            gg.addListItems({
+                {
+                    address = swordAddress,
+                    flags = gg.TYPE_DWORD,
+                    name = "Sword",
+                    value = 417
+                }
+            })
             gg.alert("Sword telah di temukan")
         else
             gg.alert("Pencarian gagal")
-            return false
+            return
         end
     else
         gg.alert("Sword ditemukan")
@@ -3901,23 +3903,27 @@ function Ssword()
         false
     }, {"number", "checkbox"})
 
-    if newValue then
-        if newValue[2] == true then
-            return true
-        end
-        
-        local editValue = tonumber(newValue[1])
-        if editValue then
-            gg.setValues({{
+    if not newValue then
+        return
+    end
+
+    if newValue[2] == true then
+        gg.sleep(100)
+        Bskill()
+        return
+    end
+
+    local editValue = tonumber(newValue[1])
+    if editValue then
+        gg.setValues({
+            {
                 address = swordAddress,
                 value = editValue,
                 flags = gg.TYPE_DWORD
-            }})
-            gg.alert("Sword diubah menjadi: " .. editValue)
-        end
+            }
+        })
+        gg.alert("Sword diubah menjadi: " .. editValue)
     end
-    
-    return false
 end
 
 function Sarcher()
