@@ -2589,15 +2589,14 @@ function cariTrigger()
   gg.setVisible(false)
   gg.clearResults()
   gg.setRanges(gg.REGION_JAVA_HEAP)
-  gg.searchNumber("1D;-1D;1008981770D;1.0F;65793D:61", gg.TYPE_DWORD, false, gg.SIGN_EQUAL)
-  gg.refineNumber("1", gg.TYPE_DWORD)
-  gg.refineAddress("0", -1, gg.TYPE_DWORD)
+  if searchInDalvikMainSpace("1;-1;1,008,981,770;1,065,353,216;1,118,391,907:61", gg.TYPE_DWORD, false, gg.SIGN_EQUAL) then
+  gg.refineNumber("1008981770", gg.TYPE_DWORD)
   local results = gg.getResults(1000)
   if #results == 0 then gg.alert("❌ Tidak ada hasil Trigger.") os.exit() end
   local offsetList = {}
   for _, v in ipairs(results) do
     table.insert(offsetList, {
-      address = v.address + 0x60,
+      address = v.address + 0x30,
       flags = gg.TYPE_DWORD,
       value = 0,
       freeze = false,
@@ -2606,13 +2605,13 @@ function cariTrigger()
   end
   gg.addListItems(offsetList)
 end
-
+end
 -- Fungsi: Simpan hasil pencarian buff
 function cariBuff()
   gg.setVisible(false)
   gg.clearResults()
   gg.setRanges(gg.REGION_JAVA_HEAP)
-  gg.searchNumber("65536;212;1:17", gg.TYPE_DWORD, false, gg.SIGN_EQUAL)
+  if searchInDalvikMainSpace("65536;212;1:17", gg.TYPE_DWORD, false, gg.SIGN_EQUAL) then
   gg.sleep(500)
   gg.refineNumber("212", gg.TYPE_DWORD)
   local results = gg.getResults(1)
@@ -2621,7 +2620,7 @@ function cariBuff()
   results[1].freeze = false
   gg.addListItems(results)
 end
-
+end
 -- Fungsi: Jalankan efek buff otomatis
 function applyBuff(effectCodes)
   -- Ambil buff dari save list
