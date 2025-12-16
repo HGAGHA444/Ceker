@@ -3862,31 +3862,33 @@ function Ssword()
         gg.clearResults()
         gg.setRanges(gg.REGION_JAVA_HEAP)
         if searchInDalvikMainSpace("417;5;5:9", gg.TYPE_DWORD) then
-        
-        local results = gg.getResults(10000)
-        local found = false
-        
-        for i, v in pairs(results) do
-            if v.value == 417 then
-                swordAddress = v.address
-                found = true
-                break
+            local results = gg.getResults(100)
+            local found = false
+            
+            for i, v in pairs(results) do
+                if v.value == 417 then
+                    swordAddress = v.address
+                    found = true
+                    break
+                end
             end
-        end
-     end
-        
-        if not found then
-            gg.alert("Value tidak ditemukan")
+            
+            if not found then
+                gg.alert("Value tidak ditemukan")
+                return false
+            end
+            
+            gg.addListItems({{
+                address = swordAddress,
+                flags = gg.TYPE_DWORD,
+                name = "Sword",
+                value = 417
+            }})
+            gg.alert("Sword telah di temukan")
+        else
+            gg.alert("Pencarian gagal")
             return false
         end
-        
-        gg.addListItems({{
-            address = swordAddress,
-            flags = gg.TYPE_DWORD,
-            name = "Sword",
-            value = 417
-        }})
-        gg.alert("Sword telah di temukan")
     else
         gg.alert("Sword ditemukan")
     end
@@ -3936,7 +3938,7 @@ function Sarcher()
         gg.setRanges(gg.REGION_JAVA_HEAP)
         if searchInDalvikMainSpace("419;5;5:9", gg.TYPE_DWORD) then
         
-        local results = gg.getResults(10000)
+        local results = gg.getResults(100)
         local found = false
         
         for i, v in pairs(results) do
@@ -4008,7 +4010,7 @@ function Smage()
         gg.setRanges(gg.REGION_JAVA_HEAP)
         if searchInDalvikMainSpace("418;5;5:9", gg.TYPE_DWORD) then
         
-        local results = gg.getResults(10000)
+        local results = gg.getResults(100)
         local found = false
         
         for i, v in pairs(results) do
@@ -4081,7 +4083,7 @@ function Stank()
         gg.setRanges(gg.REGION_JAVA_HEAP)
         if searchInDalvikMainSpace("416;5;5:9", gg.TYPE_DWORD) then
         
-        local results = gg.getResults(10000)
+        local results = gg.getResults(100)
         local found = false
         
         for i, v in pairs(results) do
@@ -4153,7 +4155,7 @@ function Tsamu()
         gg.setRanges(gg.REGION_JAVA_HEAP)
         if searchInDalvikMainSpace("420;5;5:9", gg.TYPE_DWORD) then
         
-        local results = gg.getResults(10000)
+        local results = gg.getResults(100)
         local found = false
         
         for i, v in pairs(results) do
@@ -4226,7 +4228,7 @@ function Tsino()
         gg.setRanges(gg.REGION_JAVA_HEAP)
         if searchInDalvikMainSpace("421;5;5:9", gg.TYPE_DWORD) then
         
-        local results = gg.getResults(10000)
+        local results = gg.getResults(100)
         local found = false
         
         for i, v in pairs(results) do
@@ -4298,7 +4300,7 @@ function Tmana()
         gg.setRanges(gg.REGION_JAVA_HEAP)
         if searchInDalvikMainSpace("423;5;5:9", gg.TYPE_DWORD) then
         
-        local results = gg.getResults(10000)
+        local results = gg.getResults(100)
         local found = false
         
         for i, v in pairs(results) do
@@ -4375,7 +4377,7 @@ function Tguardian()
         -- Perbaikan: Panggil fungsi searchNumber langsung
         if searchInDalvikMainSpace("422;5;5:9", gg.TYPE_DWORD) then
         
-        local results = gg.getResults(10000)
+        local results = gg.getResults(100)
         local found = false
         
         for i, v in pairs(results) do
