@@ -3908,8 +3908,9 @@ function Ssword()
     end
 
     if newValue[2] == true then
-        gg.sleep(100)
-        Bskill()
+        gg.run(function()
+            Bskill()
+        end)
         return
     end
 
