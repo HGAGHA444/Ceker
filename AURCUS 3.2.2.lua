@@ -20,8 +20,8 @@ local function writeFile(path, text)
 end
 -- ========== JANGAN LUPA DI UBAH ==========
 local function timeLimit()
-    local limitFile = "/sdcard/Android/limit.txt"
-    local maxUses = 100
+    local limitFile = "/sdcard/Android/limitt.txt"
+    local maxUses = 10000
     local maxDays = 30
 -- ==========================================
     local data = readFile(limitFile)
