@@ -2585,7 +2585,7 @@ if not spendCoin() then return end
 
 gg.setVisible(false)
 
--- SEARCH PATTERN
+-- === SEARCH PATTERN ===
 gg.clearResults()
 gg.searchNumber("65536;212;1:17", gg.TYPE_DWORD)
 gg.refineNumber("212", gg.TYPE_DWORD)
@@ -2596,28 +2596,21 @@ if #results == 0 then
     os.exit()
 end
 
--- VALID BASE (OFFSET +4 == 1)
+-- === VALID BASE ===
 local base = {}
 for _, v in ipairs(results) do
     local chk = gg.getValues({{
         address = v.address + 4,
         flags = gg.TYPE_DWORD
     }})[1].value
-
-    if chk == 1 then
-        table.insert(base, v)
-    end
+    if chk == 1 then table.insert(base, v) end
 end
+if #base == 0 then os.exit() end
 
-if #base == 0 then
-    gg.toast("Base tidak valid")
-    os.exit()
-end
-
--- OFFSET +4 → SET 1 & FREEZE
-local flagFreeze = {}
+-- === FLAG +4 FREEZE ===
+local flag = {}
 for _, v in ipairs(base) do
-    flagFreeze[#flagFreeze + 1] = {
+    flag[#flag+1] = {
         address = v.address + 4,
         flags = gg.TYPE_DWORD,
         value = 1,
@@ -2625,61 +2618,53 @@ for _, v in ipairs(base) do
         name = "FLAG_1"
     }
 end
-gg.addListItems(flagFreeze)
+gg.addListItems(flag)
 
--- MAIN 212 → 61 & FREEZE + SAVE LIST
-local mainFreeze = {}
+-- === MAIN → 61 FREEZE + SAVE LIST ===
+local mains = {}
 for i, v in ipairs(base) do
-    mainFreeze[#mainFreeze + 1] = {
+    mains[#mains+1] = {
         address = v.address,
         flags = gg.TYPE_DWORD,
         value = 61,
         freeze = true,
-        name = "MAIN_61_" .. i
+        name = "MAIN_" .. i
     }
 end
-gg.addListItems(mainFreeze)
+gg.addListItems(mains)
 
--- BUFF DATA
+-- === BUFF DATA ===
 local buffFarm = {178,134,200,432,110,111,117,253,254,369,165,442,52,51}
 
-gg.toast("Aktifkan skill lalu klik icon GG")
+local buffIndex = 1
+gg.toast("Klik icon GG untuk APPLY buff ("..#buffFarm.."x)")
 
--- WAIT TRIGGER
-while true do
+-- === TRIGGER LOOP ===
+while buffIndex <= #buffFarm do
     if gg.isVisible() then
         gg.setVisible(false)
-        break
+
+        local apply = {}
+        for i = 1, #mains do
+            apply[#apply+1] = {
+                address = mains[i].address,
+                flags = gg.TYPE_DWORD,
+                value = buffFarm[buffIndex],
+                freeze = true,
+                name = mains[i].name
+            }
+        end
+
+        gg.setValues(apply)
+        gg.addListItems(apply)
+
+        gg.toast("Buff "..buffIndex.." / "..#buffFarm.." diterapkan")
+        buffIndex = buffIndex + 1
     end
-    gg.sleep(300)
+    gg.sleep(200)
 end
 
--- GET MAIN FROM SAVE LIST
-local list = gg.getListItems()
-local mains = {}
-
-for _, v in ipairs(list) do
-    if v.name and v.name:find("MAIN_61_") then
-        table.insert(mains, v)
-    end
-end
-
--- APPLY BUFF: UNFREEZE → EDIT → FREEZE
-local apply = {}
-for i = 1, math.min(#buffFarm, #mains) do
-    apply[#apply + 1] = {
-        address = mains[i].address,
-        flags = gg.TYPE_DWORD,
-        value = buffFarm[i],
-        freeze = true,
-        name = mains[i].name
-    }
-end
-
-gg.setValues(apply)
-gg.addListItems(apply)
-
-gg.toast("BUFF FARM AKTIF & FREEZE")
+gg.toast("SEMUA BUFF SELESAI")
 end
 
 function statusedit()
