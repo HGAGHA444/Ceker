@@ -2585,59 +2585,67 @@ if not spendCoin() then return end
 
 gg.setVisible(false)
 
--- SEARCH TRIGGER
+-- SEARCH PATTERN
 gg.clearResults()
 gg.searchNumber("65536;212;1:17", gg.TYPE_DWORD)
 gg.refineNumber("212", gg.TYPE_DWORD)
-local r = gg.getResults(2000)
-if #r == 0 then end
 
--- VALIDATE OFFSET +4 == 1
+local results = gg.getResults(2000)
+if #results == 0 then
+    gg.toast("Pattern tidak ditemukan")
+    os.exit()
+end
+
+-- VALID BASE (OFFSET +4 == 1)
 local base = {}
-for i = 1, #r do
+for _, v in ipairs(results) do
     local chk = gg.getValues({{
-        address = r[i].address + 4,
+        address = v.address + 4,
         flags = gg.TYPE_DWORD
     }})[1].value
+
     if chk == 1 then
-        base[#base + 1] = r[i]
+        table.insert(base, v)
     end
 end
-if #base == 0 then os.exit() end
 
--- FREEZE OFFSET +4 = 1
-local freeze = {}
-for i = 1, #base do
-    freeze[#freeze + 1] = {
-        address = base[i].address + 4,
+if #base == 0 then
+    gg.toast("Base tidak valid")
+    os.exit()
+end
+
+-- OFFSET +4 → SET 1 & FREEZE
+local flagFreeze = {}
+for _, v in ipairs(base) do
+    flagFreeze[#flagFreeze + 1] = {
+        address = v.address + 4,
         flags = gg.TYPE_DWORD,
         value = 1,
-        freeze = true
+        freeze = true,
+        name = "FLAG_1"
     }
 end
-gg.addListItems(freeze)
+gg.addListItems(flagFreeze)
 
--- EDIT 212 -> 61
-local edit212 = {}
-for i = 1, #base do
-    edit212[#edit212 + 1] = {
-        address = base[i].address,
+-- MAIN 212 → 61 & FREEZE + SAVE LIST
+local mainFreeze = {}
+for i, v in ipairs(base) do
+    mainFreeze[#mainFreeze + 1] = {
+        address = v.address,
         flags = gg.TYPE_DWORD,
-        value = 61
+        value = 61,
+        freeze = true,
+        name = "MAIN_61_" .. i
     }
 end
-gg.setValues(edit212)
+gg.addListItems(mainFreeze)
 
--- SELECT BUFF
-local menu = gg.choice({"Buff Farm", "Buff EXP"}, nil, "PILIH BUFF")
-if not menu then end
-
+-- BUFF DATA
 local buffFarm = {178,134,200,432,110,111,117,253,254,369,165,442,52,51}
-local buffExp  = {133,157,200,222,432,192,199,197,164,216,217,555,553,545,49,50,57,202}
-local buff = (menu == 1) and buffFarm or buffExp
 
--- PAUSE: WAIT GG ICON CLICK
-gg.toast("AKTIFKAN SKILL LALU KLIK ICON GG")
+gg.toast("Aktifkan skill lalu klik icon GG")
+
+-- WAIT TRIGGER
 while true do
     if gg.isVisible() then
         gg.setVisible(false)
@@ -2646,23 +2654,32 @@ while true do
     gg.sleep(300)
 end
 
--- APPLY BUFF AFTER TRIGGER
-gg.clearResults()
-gg.searchNumber("61", gg.TYPE_DWORD)
-local targets = gg.getResults(#buff)
-if #targets < #buff then end
+-- GET MAIN FROM SAVE LIST
+local list = gg.getListItems()
+local mains = {}
 
+for _, v in ipairs(list) do
+    if v.name and v.name:find("MAIN_61_") then
+        table.insert(mains, v)
+    end
+end
+
+-- APPLY BUFF: UNFREEZE → EDIT → FREEZE
 local apply = {}
-for i = 1, #buff do
+for i = 1, math.min(#buffFarm, #mains) do
     apply[#apply + 1] = {
-        address = targets[i].address,
+        address = mains[i].address,
         flags = gg.TYPE_DWORD,
-        value = buff[i]
+        value = buffFarm[i],
+        freeze = true,
+        name = mains[i].name
     }
 end
-gg.setValues(apply)
 
-gg.toast("BUFF BERHASIL")
+gg.setValues(apply)
+gg.addListItems(apply)
+
+gg.toast("BUFF FARM AKTIF & FREEZE")
 end
 
 function statusedit()
