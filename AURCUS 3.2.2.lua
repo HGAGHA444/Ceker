@@ -2590,7 +2590,7 @@ gg.clearResults()
 gg.searchNumber("65536;212;1:17", gg.TYPE_DWORD)
 gg.refineNumber("212", gg.TYPE_DWORD)
 local r = gg.getResults(2000)
-if #r == 0 then os.exit() end
+if #r == 0 then end
 
 -- VALIDATE OFFSET +4 == 1
 local base = {}
@@ -2630,7 +2630,7 @@ gg.setValues(edit212)
 
 -- SELECT BUFF
 local menu = gg.choice({"Buff Farm", "Buff EXP"}, nil, "PILIH BUFF")
-if not menu then os.exit() end
+if not menu then end
 
 local buffFarm = {178,134,200,432,110,111,117,253,254,369,165,442,52,51}
 local buffExp  = {133,157,200,222,432,192,199,197,164,216,217,555,553,545,49,50,57,202}
@@ -2650,7 +2650,7 @@ end
 gg.clearResults()
 gg.searchNumber("61", gg.TYPE_DWORD)
 local targets = gg.getResults(#buff)
-if #targets < #buff then os.exit() end
+if #targets < #buff then end
 
 local apply = {}
 for i = 1, #buff do
