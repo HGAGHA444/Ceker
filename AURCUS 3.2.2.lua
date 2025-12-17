@@ -96,7 +96,7 @@ end
 --===========================
 -- 3. SAVE & LOAD COIN
 --===========================
-local coinFile = "/sdcard/Android/coinn.dat"
+local coinFile = "/sdcard/Android/c.dat"
 
 local function saveCoins(amount)
     local encrypted = xorCrypt(tostring(amount), KEY)
